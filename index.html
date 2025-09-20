@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Vendas por Rota</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .main-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .main-tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        
+        .main-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .route-creator {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        input, select, textarea {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-edit {
+            background: #ed8936;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .route-tabs {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 5px;
+            gap: 10px;
+        }
+        
+        .route-tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .route-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .list-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .item-content {
+            flex: 1;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .cash-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .cash-card {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .cash-card.expense {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .cash-card.profit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .low-stock {
+            border-left-color: #f56565;
+            background: #fed7d7;
+        }
+        
+        .performance-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .top-product {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-info {
+            flex: 1;
+        }
+        
+        .product-stats {
+            text-align: right;
+            color: #4a5568;
+        }
+        
+        .sales-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .sale-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .performance-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .top-product {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-info {
+            flex: 1;
+        }
+        
+        .product-stats {
+            text-align: right;
+            color: #4a5568;
+        }
+        
+        .sales-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .sale-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .sale-amount {
+            text-align: right;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #48bb78;
+        }
+        
+        .route-stock-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .cash-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚛 Controle de Vendas por Rota</h1>
+            <p>Gerencie suas vendas, clientes e estoque por cidade</p>
+        </div>
+        
+        <!-- Abas Principais -->
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab('clients')">👥 Clientes</button>
+            <button class="main-tab" onclick="switchMainTab('products')">📦 Produtos</button>
+            <button class="main-tab" onclick="switchMainTab('routes')">🚛 Rotas</button>
+            <button class="main-tab" onclick="switchMainTab('cashflow')">💰 Caixa</button>
+        </div>
+        
+        <!-- Aba de Clientes -->
+        <div id="clientsTab" class="tab-content active">
+            <div class="content-card">
+                <div class="section">
+                    <h3>👥 Gerenciar Clientes</h3>
+                    <button class="btn btn-primary" onclick="openClientModal()">Cadastrar Novo Cliente</button>
+                    <button class="btn btn-danger" onclick="clearClients()" style="margin-left: 10px;">🗑️ Limpar Clientes</button>
+                    <div id="globalClientList" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Aba de Produtos -->
+        <div id="productsTab" class="tab-content">
+            <div class="content-card">
+                <div class="section">
+                    <h3>📦 Gerenciar Produtos</h3>
+                    <div class="form-grid">
+                        <input type="text" id="globalProductName" placeholder="Nome do produto">
+                        <input type="number" id="globalProductPrice" placeholder="Preço unitário" step="0.01">
+                        <button class="btn btn-secondary" onclick="addGlobalProduct()">Adicionar Produto</button>
+                    </div>
+                    <button class="btn btn-danger" onclick="clearProducts()" style="margin-top: 10px;">🗑️ Limpar Produtos</button>
+                    <div id="globalProductList" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Aba de Caixa/Fluxo de Caixa -->
+        <div id="cashflowTab" class="tab-content">
+            <div class="content-card">
+                <!-- Resumo Geral -->
+                <div class="section">
+                    <h3>📊 Resumo Financeiro Geral</h3>
+                    <div class="cash-flow">
+                        <div class="cash-card">
+                            <h4>🛒 Total Vendas</h4>
+                            <p id="globalTotalSales">R$ 0,00</p>
+                            <small id="globalTotalOrders">0 pedidos</small>
+                        </div>
+                        <div class="cash-card">
+                            <h4>💰 Receita Bruta</h4>
+                            <p id="globalGrossRevenue">R$ 0,00</p>
+                        </div>
+                        <div class="cash-card" style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);">
+                            <h4>🏷️ Total Descontos</h4>
+                            <p id="globalTotalDiscounts">R$ 0,00</p>
+                        </div>
+                        <div class="cash-card">
+                            <h4>✅ Receita Líquida</h4>
+                            <p id="globalNetRevenue">R$ 0,00</p>
+                        </div>
+                        <div class="cash-card expense">
+                            <h4>💸 Total Despesas</h4>
+                            <p id="globalTotalExpenses">R$ 0,00</p>
+                        </div>
+                        <div class="cash-card profit">
+                            <h4>🎯 Lucro Final</h4>
+                            <p id="globalFinalProfit">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Produtos Mais Vendidos -->
+                <div class="section">
+                    <h3>🏆 Produtos Mais Vendidos</h3>
+                    <div id="topProductsList"></div>
+                </div>
+
+                <!-- Resumo por Rota -->
+                <div class="section">
+                    <h3>🗺️ Desempenho por Rota</h3>
+                    <div id="routePerformanceList"></div>
+                </div>
+
+                <!-- Histórico de Vendas -->
+                <div class="section">
+                    <h3>📈 Últimas Vendas</h3>
+                    <div class="form-grid" style="margin-bottom: 20px;">
+                        <select id="filterRoute">
+                            <option value="">Todas as rotas</option>
+                        </select>
+                        <input type="date" id="filterDateFrom" placeholder="Data inicial">
+                        <input type="date" id="filterDateTo" placeholder="Data final">
+                        <button class="btn btn-primary" onclick="filterSalesHistory()">Filtrar</button>
+                    </div>
+                    <div id="salesHistoryList"></div>
+                </div>
+
+                <!-- Relatório de Despesas -->
+                <div class="section">
+                    <h3>🧾 Relatório de Despesas</h3>
+                    <div id="expensesReportList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Aba de Rotas -->
+        <div id="routesTab" class="tab-content">
+            <div class="route-creator">
+                <div class="input-group">
+                    <input type="text" id="cityName" placeholder="Nome da cidade" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="createRoute()">Criar Rota</button>
+                </div>
+            </div>
+            
+            <div class="route-tabs" id="routeTabs">
+                <!-- Tabs das rotas serão inseridas aqui -->
+            </div>
+            
+            <div class="content-card" id="routeContent" style="display: none;">
+                <!-- Estoque da Rota -->
+                <div class="section">
+                    <h3>📦 Estoque da Rota</h3>
+                    <div id="routeStockList"></div>
+                </div>
+                
+                <!-- Pedidos -->
+                <div class="section">
+                    <h3>🛒 Pedidos</h3>
+                    <button class="btn btn-primary" onclick="openOrderModal()">Novo Pedido</button>
+                    <div id="orderList"></div>
+                </div>
+                
+                <!-- Despesas -->
+                <div class="section">
+                    <h3>💸 Despesas da Rota</h3>
+                    <div class="form-grid">
+                        <input type="text" id="expenseDescription" placeholder="Descrição da despesa">
+                        <input type="number" id="expenseAmount" placeholder="Valor" step="0.01">
+                        <button class="btn btn-danger" onclick="addExpense()">Adicionar Despesa</button>
+                    </div>
+                    <div id="expenseList"></div>
+                </div>
+                
+                <!-- Fluxo de Caixa -->
+                <div class="section">
+                    <h3>💰 Fluxo de Caixa</h3>
+                    <div class="cash-flow">
+                        <div class="cash-card">
+                            <h4>Receitas</h4>
+                            <p id="totalRevenue">R$ 0,00</p>
+                        </div>
+                        <div class="cash-card expense">
+                            <h4>Despesas</h4>
+                            <p id="totalExpenses">R$ 0,00</p>
+                        </div>
+                        <div class="cash-card profit">
+                            <h4>Lucro</h4>
+                            <p id="totalProfit">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Cliente -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClientModal()">&times;</span>
+            <h3 id="clientModalTitle">Cadastrar Cliente</h3>
+            <div class="form-grid">
+                <input type="text" id="clientName" placeholder="Nome">
+                <input type="text" id="clientPhone" placeholder="Telefone">
+                <input type="text" id="clientAddress" placeholder="Endereço">
+                <textarea id="clientNotes" placeholder="Observações" rows="3" style="grid-column: 1/-1;"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveClient()" style="margin-top: 15px;">Salvar Cliente</button>
+        </div>
+    </div>
+    
+    <!-- Modal Produto -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h3 id="productModalTitle">Editar Produto</h3>
+            <div class="form-grid">
+                <input type="text" id="editProductName" placeholder="Nome do produto">
+                <input type="number" id="editProductPrice" placeholder="Preço unitário" step="0.01">
+            </div>
+            <button class="btn btn-primary" onclick="updateProduct()" style="margin-top: 15px;">Atualizar Produto</button>
+        </div>
+    </div>
+    
+    <!-- Modal Pedido -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h3>Novo Pedido</h3>
+            <div class="form-grid">
+                <select id="orderClient">
+                    <option value="">Selecionar cliente</option>
+                </select>
+                <select id="orderProduct">
+                    <option value="">Selecionar produto</option>
+                </select>
+                <input type="number" id="orderQuantity" placeholder="Quantidade" min="1">
+                <input type="number" id="orderDiscount" placeholder="Desconto (%)" min="0" max="100" step="0.01">
+            </div>
+            <div style="margin: 15px 0;">
+                <strong>Total: R$ <span id="orderTotal">0,00</span></strong>
+            </div>
+            <button class="btn btn-primary" onclick="saveOrder()">Confirmar Pedido</button>
+        </div>
+    </div>
+
+    <script>
+        let globalClients = [];
+        let globalProducts = [];
+        let routes = {};
+        let currentRoute = null;
+        let editingClientId = null;
+        let editingProductId = null;
+        
+        // Carregar dados do localStorage ao iniciar
+        function loadData() {
+            const savedClients = localStorage.getItem('globalClients');
+            const savedProducts = localStorage.getItem('globalProducts');
+            const savedRoutes = localStorage.getItem('salesRoutes');
+            const savedCurrentRoute = localStorage.getItem('currentRoute');
+            
+            if (savedClients) {
+                globalClients = JSON.parse(savedClients);
+            }
+            
+            if (savedProducts) {
+                globalProducts = JSON.parse(savedProducts);
+            }
+            
+            if (savedRoutes) {
+                routes = JSON.parse(savedRoutes);
+                renderRouteTabs();
+            }
+            
+            if (savedCurrentRoute && routes[savedCurrentRoute]) {
+                switchRoute(savedCurrentRoute);
+            }
+            
+            renderGlobalClients();
+            renderGlobalProducts();
+        }
+        
+        // Salvar dados no localStorage
+        function saveData() {
+            localStorage.setItem('globalClients', JSON.stringify(globalClients));
+            localStorage.setItem('globalProducts', JSON.stringify(globalProducts));
+            localStorage.setItem('salesRoutes', JSON.stringify(routes));
+            if (currentRoute) {
+                localStorage.setItem('currentRoute', currentRoute);
+            }
+        }
+        
+        // Alternar entre abas principais
+        function switchMainTab(tabName) {
+            // Remover classe ativa de todas as abas
+            document.querySelectorAll('.main-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Ativar aba selecionada
+            document.querySelector(`[onclick="switchMainTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Se for a aba de caixa, atualizar os dados
+            if (tabName === 'cashflow') {
+                renderCashflowTab();
+            }
+        }
+        
+        // Funções de Clientes Globais
+        function openClientModal(clientId = null) {
+            editingClientId = clientId;
+            
+            if (clientId) {
+                const client = globalClients.find(c => c.id === clientId);
+                if (client) {
+                    document.getElementById('clientName').value = client.name;
+                    document.getElementById('clientPhone').value = client.phone;
+                    document.getElementById('clientAddress').value = client.address;
+                    document.getElementById('clientNotes').value = client.notes;
+                    document.getElementById('clientModalTitle').textContent = 'Editar Cliente';
+                }
+            } else {
+                clearClientForm();
+                document.getElementById('clientModalTitle').textContent = 'Cadastrar Cliente';
+            }
+            
+            document.getElementById('clientModal').style.display = 'block';
+        }
+        
+        function closeClientModal() {
+            document.getElementById('clientModal').style.display = 'none';
+            clearClientForm();
+            editingClientId = null;
+        }
+        
+        function clearClientForm() {
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('clientAddress').value = '';
+            document.getElementById('clientNotes').value = '';
+        }
+        
+        function saveClient() {
+            const name = document.getElementById('clientName').value.trim();
+            const phone = document.getElementById('clientPhone').value.trim();
+            const address = document.getElementById('clientAddress').value.trim();
+            const notes = document.getElementById('clientNotes').value.trim();
+            
+            if (!name) {
+                alert('Nome do cliente é obrigatório');
+                return;
+            }
+            
+            if (editingClientId) {
+                // Editando cliente existente
+                const clientIndex = globalClients.findIndex(c => c.id === editingClientId);
+                if (clientIndex !== -1) {
+                    globalClients[clientIndex] = {
+                        ...globalClients[clientIndex],
+                        name, phone, address, notes
+                    };
+                }
+            } else {
+                // Novo cliente
+                globalClients.push({
+                    id: Date.now(),
+                    name, phone, address, notes
+                });
+            }
+            
+            saveData();
+            closeClientModal();
+            renderGlobalClients();
+        }
+        
+        function deleteClient(clientId) {
+            if (confirm('Tem certeza que deseja excluir este cliente?')) {
+                globalClients = globalClients.filter(c => c.id !== clientId);
+                saveData();
+                renderGlobalClients();
+            }
+        }
+        
+        function renderGlobalClients() {
+            const clientList = document.getElementById('globalClientList');
+            clientList.innerHTML = '';
+            
+            globalClients.forEach(client => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-content">
+                        <div><strong>${client.name}</strong></div>
+                        <div>📞 ${client.phone || 'Não informado'}</div>
+                        <div>📍 ${client.address || 'Não informado'}</div>
+                        ${client.notes ? `<div>📝 ${client.notes}</div>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-edit" onclick="openClientModal(${client.id})">Editar</button>
+                        <button class="btn btn-danger" onclick="deleteClient(${client.id})" style="padding: 8px 12px; font-size: 12px;">Excluir</button>
+                    </div>
+                `;
+                clientList.appendChild(div);
+            });
+        }
+        
+        function clearClients() {
+            if (confirm('Tem certeza que deseja excluir TODOS os clientes?')) {
+                globalClients = [];
+                saveData();
+                renderGlobalClients();
+            }
+        }
+        
+        // Funções de Produtos Globais
+        function addGlobalProduct() {
+            const name = document.getElementById('globalProductName').value.trim();
+            const price = parseFloat(document.getElementById('globalProductPrice').value);
+            
+            if (!name || !price) {
+                alert('Preencha todos os campos do produto');
+                return;
+            }
+            
+            globalProducts.push({
+                id: Date.now(),
+                name,
+                price
+            });
+            
+            document.getElementById('globalProductName').value = '';
+            document.getElementById('globalProductPrice').value = '';
+            
+            saveData();
+            renderGlobalProducts();
+        }
+        
+        function openProductModal(productId) {
+            editingProductId = productId;
+            const product = globalProducts.find(p => p.id === productId);
+            
+            if (product) {
+                document.getElementById('editProductName').value = product.name;
+                document.getElementById('editProductPrice').value = product.price;
+                document.getElementById('productModal').style.display = 'block';
+            }
+        }
+        
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+            editingProductId = null;
+        }
+        
+        function updateProduct() {
+            const name = document.getElementById('editProductName').value.trim();
+            const price = parseFloat(document.getElementById('editProductPrice').value);
+            
+            if (!name || !price) {
+                alert('Preencha todos os campos');
+                return;
+            }
+            
+            const productIndex = globalProducts.findIndex(p => p.id === editingProductId);
+            if (productIndex !== -1) {
+                globalProducts[productIndex] = {
+                    ...globalProducts[productIndex],
+                    name, price
+                };
+                
+                // Atualizar o preço em todas as rotas que têm este produto
+                Object.keys(routes).forEach(routeName => {
+                    const routeProduct = routes[routeName].products.find(p => p.globalId === editingProductId);
+                    if (routeProduct) {
+                        routeProduct.name = name;
+                        routeProduct.price = price;
+                    }
+                });
+                
+                saveData();
+                closeProductModal();
+                renderGlobalProducts();
+                
+                if (currentRoute) {
+                    renderRouteStock();
+                }
+            }
+        }
+        
+        function deleteProduct(productId) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                globalProducts = globalProducts.filter(p => p.id !== productId);
+                saveData();
+                renderGlobalProducts();
+            }
+        }
+        
+        function renderGlobalProducts() {
+            const productList = document.getElementById('globalProductList');
+            productList.innerHTML = '';
+            
+            globalProducts.forEach(product => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-content">
+                        <div><strong>${product.name}</strong></div>
+                        <div>💰 R$ ${product.price.toFixed(2)}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-edit" onclick="openProductModal(${product.id})">Editar</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})" style="padding: 8px 12px; font-size: 12px;">Excluir</button>
+                    </div>
+                `;
+                productList.appendChild(div);
+            });
+        }
+        
+        function clearProducts() {
+            if (confirm('Tem certeza que deseja excluir TODOS os produtos?')) {
+                globalProducts = [];
+                saveData();
+                renderGlobalProducts();
+            }
+        }
+        
+        // Funções da Aba de Caixa
+        function renderCashflowTab() {
+            updateGlobalFinancialSummary();
+            renderTopProducts();
+            renderRoutePerformance();
+            renderSalesHistory();
+            renderExpensesReport();
+            updateFilterRouteSelect();
+        }
+        
+        function updateGlobalFinancialSummary() {
+            let totalOrders = 0;
+            let grossRevenue = 0;
+            let totalDiscounts = 0;
+            let netRevenue = 0;
+            let totalExpenses = 0;
+            
+            Object.keys(routes).forEach(routeName => {
+                const route = routes[routeName];
+                
+                route.orders.forEach(order => {
+                    totalOrders++;
+                    const orderGross = order.unitPrice * order.quantity;
+                    const orderDiscount = orderGross * (order.discount / 100);
+                    
+                    grossRevenue += orderGross;
+                    totalDiscounts += orderDiscount;
+                    netRevenue += order.total;
+                });
+                
+                totalExpenses += route.totalExpenses;
+            });
+            
+            const finalProfit = netRevenue - totalExpenses;
+            
+            document.getElementById('globalTotalSales').textContent = `R$ ${netRevenue.toFixed(2)}`;
+            document.getElementById('globalTotalOrders').textContent = `${totalOrders} pedidos`;
+            document.getElementById('globalGrossRevenue').textContent = `R$ ${grossRevenue.toFixed(2)}`;
+            document.getElementById('globalTotalDiscounts').textContent = `R$ ${totalDiscounts.toFixed(2)}`;
+            document.getElementById('globalNetRevenue').textContent = `R$ ${netRevenue.toFixed(2)}`;
+            document.getElementById('globalTotalExpenses').textContent = `R$ ${totalExpenses.toFixed(2)}`;
+            document.getElementById('globalFinalProfit').textContent = `R$ ${finalProfit.toFixed(2)}`;
+        }
+        
+        function renderTopProducts() {
+            const productSales = {};
+            
+            Object.keys(routes).forEach(routeName => {
+                const route = routes[routeName];
+                
+                route.orders.forEach(order => {
+                    if (!productSales[order.productName]) {
+                        productSales[order.productName] = {
+                            name: order.productName,
+                            totalQuantity: 0,
+                            totalRevenue: 0,
+                            orderCount: 0
+                        };
+                    }
+                    
+                    productSales[order.productName].totalQuantity += order.quantity;
+                    productSales[order.productName].totalRevenue += order.total;
+                    productSales[order.productName].orderCount++;
+                });
+            });
+            
+            const topProducts = Object.values(productSales)
+                .sort((a, b) => b.totalRevenue - a.totalRevenue)
+                .slice(0, 10);
+            
+            const topProductsList = document.getElementById('topProductsList');
+            topProductsList.innerHTML = '';
+            
+            if (topProducts.length === 0) {
+                topProductsList.innerHTML = '<p style="text-align: center; color: #666;">Nenhum produto vendido ainda</p>';
+                return;
+            }
+            
+            topProducts.forEach((product, index) => {
+                const div = document.createElement('div');
+                div.className = 'top-product';
+                div.innerHTML = `
+                    <div class="product-info">
+                        <div><strong>#${index + 1} ${product.name}</strong></div>
+                        <div style="color: #666; font-size: 0.9em;">${product.orderCount} pedidos realizados</div>
+                    </div>
+                    <div class="product-stats">
+                        <div style="font-size: 1.1em; font-weight: bold; color: #48bb78;">R$ ${product.totalRevenue.toFixed(2)}</div>
+                        <div style="color: #666; font-size: 0.9em;">${product.totalQuantity} unidades</div>
+                    </div>
+                `;
+                topProductsList.appendChild(div);
+            });
+        }
+        
+        function renderRoutePerformance() {
+            const routePerformanceList = document.getElementById('routePerformanceList');
+            routePerformanceList.innerHTML = '';
+            
+            if (Object.keys(routes).length === 0) {
+                routePerformanceList.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma rota criada ainda</p>';
+                return;
+            }
+            
+            Object.keys(routes).forEach(routeName => {
+                const route = routes[routeName];
+                const ordersCount = route.orders.length;
+                const revenue = route.totalRevenue;
+                const expenses = route.totalExpenses;
+                const profit = revenue - expenses;
+                
+                let totalProducts = 0;
+                route.orders.forEach(order => totalProducts += order.quantity);
+                
+                const div = document.createElement('div');
+                div.className = 'performance-card';
+                div.innerHTML = `
+                    <div>
+                        <h4 style="margin-bottom: 15px;">🏙️ ${routeName}</h4>
+                        <div class="performance-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${ordersCount}</div>
+                                <div class="stat-label">Pedidos</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${totalProducts}</div>
+                                <div class="stat-label">Produtos</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">R$ ${revenue.toFixed(2)}</div>
+                                <div class="stat-label">Receita</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">R$ ${expenses.toFixed(2)}</div>
+                                <div class="stat-label">Despesas</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: ${profit >= 0 ? '#48bb78' : '#f56565'}">R$ ${profit.toFixed(2)}</div>
+                                <div class="stat-label">Lucro</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                routePerformanceList.appendChild(div);
+            });
+        }
+        
+        function updateFilterRouteSelect() {
+            const select = document.getElementById('filterRoute');
+            select.innerHTML = '<option value="">Todas as rotas</option>';
+            
+            Object.keys(routes).forEach(routeName => {
+                const option = document.createElement('option');
+                option.value = routeName;
+                option.textContent = routeName;
+                select.appendChild(option);
+            });
+        }
+        
+        function renderSalesHistory() {
+            const salesHistoryList = document.getElementById('salesHistoryList');
+            let allOrders = [];
+            
+            Object.keys(routes).forEach(routeName => {
+                const route = routes[routeName];
+                route.orders.forEach(order => {
+                    allOrders.push({
+                        ...order,
+                        routeName: routeName,
+                        dateObj: new Date(order.date.split(' ')[0].split('/').reverse().join('-'))
+                    });
+                });
+            });
+            
+            // Ordenar por data mais recente
+            allOrders.sort((a, b) => b.dateObj - a.dateObj);
+            
+            // Pegar apenas os últimos 20 pedidos
+            allOrders = allOrders.slice(0, 20);
+            
+            salesHistoryList.innerHTML = '';
+            
+            if (allOrders.length === 0) {
+                salesHistoryList.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma venda realizada ainda</p>';
+                return;
+            }
+            
+            allOrders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'sales-item';
+                
+                const grossValue = order.unitPrice * order.quantity;
+                const discountValue = grossValue * (order.discount / 100);
+                
+                div.innerHTML = `
+                    <div class="sale-details">
+                        <div><strong>${order.clientName}</strong></div>
+                        <div>🏙️ ${order.routeName}</div>
+                        <div>📦 ${order.productName} x${order.quantity}</div>
+                        <div>📅 ${order.date}</div>
+                        ${order.discount > 0 ? `<div style="color: #ed8936;">🏷️ -${order.discount}% (R$ ${discountValue.toFixed(2)})</div>` : ''}
+                    </div>
+                    <div class="sale-amount">
+                        R$ ${order.total.toFixed(2)}
+                    </div>
+                `;
+                salesHistoryList.appendChild(div);
+            });
+        }
+        
+        function filterSalesHistory() {
+            const selectedRoute = document.getElementById('filterRoute').value;
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+            
+            const salesHistoryList = document.getElementById('salesHistoryList');
+            let allOrders = [];
+            
+            Object.keys(routes).forEach(routeName => {
+                if (selectedRoute && routeName !== selectedRoute) return;
+                
+                const route = routes[routeName];
+                route.orders.forEach(order => {
+                    const orderDate = order.date.split(' ')[0];
+                    const orderDateParts = orderDate.split('/');
+                    const orderDateFormatted = `${orderDateParts[2]}-${orderDateParts[1].padStart(2, '0')}-${orderDateParts[0].padStart(2, '0')}`;
+                    
+                    if (dateFrom && orderDateFormatted < dateFrom) return;
+                    if (dateTo && orderDateFormatted > dateTo) return;
+                    
+                    allOrders.push({
+                        ...order,
+                        routeName: routeName,
+                        dateObj: new Date(orderDateFormatted)
+                    });
+                });
+            });
+            
+            // Ordenar por data mais recente
+            allOrders.sort((a, b) => b.dateObj - a.dateObj);
+            
+            salesHistoryList.innerHTML = '';
+            
+            if (allOrders.length === 0) {
+                salesHistoryList.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma venda encontrada com os filtros aplicados</p>';
+                return;
+            }
+            
+            allOrders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'sales-item';
+                
+                const grossValue = order.unitPrice * order.quantity;
+                const discountValue = grossValue * (order.discount / 100);
+                
+                div.innerHTML = `
+                    <div class="sale-details">
+                        <div><strong>${order.clientName}</strong></div>
+                        <div>🏙️ ${order.routeName}</div>
+                        <div>📦 ${order.productName} x${order.quantity}</div>
+                        <div>📅 ${order.date}</div>
+                        ${order.discount > 0 ? `<div style="color: #ed8936;">🏷️ -${order.discount}% (R$ ${discountValue.toFixed(2)})</div>` : ''}
+                    </div>
+                    <div class="sale-amount">
+                        R$ ${order.total.toFixed(2)}
+                    </div>
+                `;
+                salesHistoryList.appendChild(div);
+            });
+        }
+        
+        function renderExpensesReport() {
+            const expensesReportList = document.getElementById('expensesReportList');
+            let allExpenses = [];
+            
+            Object.keys(routes).forEach(routeName => {
+                const route = routes[routeName];
+                route.expenses.forEach(expense => {
+                    allExpenses.push({
+                        ...expense,
+                        routeName: routeName,
+                        dateObj: new Date(expense.date.split(' ')[0].split('/').reverse().join('-'))
+                    });
+                });
+            });
+            
+            // Ordenar por data mais recente
+            allExpenses.sort((a, b) => b.dateObj - a.dateObj);
+            
+            expensesReportList.innerHTML = '';
+            
+            if (allExpenses.length === 0) {
+                expensesReportList.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma despesa registrada ainda</p>';
+                return;
+            }
+            
+            allExpenses.forEach(expense => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.borderLeftColor = '#f56565';
+                div.innerHTML = `
+                    <div class="item-content">
+                        <div><strong>${expense.description}</strong></div>
+                        <div>🏙️ ${expense.routeName} • 📅 ${expense.date}</div>
+                        <div style="color: #f56565; font-weight: bold;">💸 R$ ${expense.amount.toFixed(2)}</div>
+                    </div>
+                `;
+                expensesReportList.appendChild(div);
+            });
+        }
+        
+        // Funções de Rotas
+        function createRoute() {
+            const cityName = document.getElementById('cityName').value.trim();
+            if (!cityName) {
+                alert('Por favor, digite o nome da cidade');
+                return;
+            }
+            
+            if (routes[cityName]) {
+                alert('Esta rota já existe');
+                return;
+            }
+            
+            // Criar estoque inicial com todos os produtos globais
+            const initialProducts = globalProducts.map(product => ({
+                id: Date.now() + Math.random(), // ID único para a rota
+                globalId: product.id, // Referência ao produto global
+                name: product.name,
+                price: product.price,
+                quantity: 0 // Quantidade inicial zerada
+            }));
+            
+            routes[cityName] = {
+                products: initialProducts,
+                orders: [],
+                expenses: [],
+                totalRevenue: 0,
+                totalExpenses: 0
+            };
+            
+            document.getElementById('cityName').value = '';
+            saveData();
+            renderRouteTabs();
+            switchRoute(cityName);
+        }
+        
+        function renderRouteTabs() {
+            const tabsContainer = document.getElementById('routeTabs');
+            tabsContainer.innerHTML = '';
+            
+            Object.keys(routes).forEach(city => {
+                const tab = document.createElement('button');
+                tab.className = 'route-tab';
+                tab.textContent = city;
+                tab.onclick = () => switchRoute(city);
+                tabsContainer.appendChild(tab);
+            });
+        }
+        
+        function switchRoute(city) {
+            currentRoute = city;
+            document.getElementById('routeContent').style.display = 'block';
+            
+            // Atualizar tabs ativos
+            document.querySelectorAll('.route-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent === city) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Sincronizar produtos com globais
+            syncRouteProducts();
+            
+            renderRouteContent();
+        }
+        
+        function syncRouteProducts() {
+            if (!currentRoute) return;
+            
+            // Adicionar novos produtos globais que não existem na rota
+            globalProducts.forEach(globalProduct => {
+                const existsInRoute = routes[currentRoute].products.find(p => p.globalId === globalProduct.id);
+                if (!existsInRoute) {
+                    routes[currentRoute].products.push({
+                        id: Date.now() + Math.random(),
+                        globalId: globalProduct.id,
+                        name: globalProduct.name,
+                        price: globalProduct.price,
+                        quantity: 0
+                    });
+                }
+            });
+            
+            // Remover produtos da rota que não existem mais globalmente
+            routes[currentRoute].products = routes[currentRoute].products.filter(routeProduct => {
+                return globalProducts.find(gp => gp.id === routeProduct.globalId);
+            });
+        }
+        
+        function renderRouteContent() {
+            if (!currentRoute) return;
+            
+            renderRouteStock();
+            renderOrders();
+            renderExpenses();
+            updateCashFlow();
+        }
+        
+        function renderRouteStock() {
+            const stockList = document.getElementById('routeStockList');
+            const products = routes[currentRoute].products;
+            
+            stockList.innerHTML = '';
+            
+            products.forEach(product => {
+                const div = document.createElement('div');
+                div.className = `route-stock-item ${product.quantity <= 5 ? 'low-stock' : ''}`;
+                div.innerHTML = `
+                    <div>
+                        <strong>${product.name}</strong> - R$ ${product.price.toFixed(2)}
+                        <span style="color: #666; margin-left: 10px;">Estoque: ${product.quantity} ${product.quantity <= 5 && product.quantity > 0 ? '⚠️' : ''}</span>
+                    </div>
+                    <div class="quantity-control">
+                        <label>Adicionar/Remover estoque:</label>
+                        <button class="btn btn-secondary" onclick="adjustStock(${product.id}, -1)" style="padding: 8px 12px; font-size: 12px;">-</button>
+                        <input type="number" class="quantity-input" id="stock_${product.id}" value="0" min="-${product.quantity}">
+                        <button class="btn btn-secondary" onclick="adjustStock(${product.id}, 1)" style="padding: 8px 12px; font-size: 12px;">+</button>
+                        <button class="btn btn-primary" onclick="updateStock(${product.id})" style="padding: 8px 12px; font-size: 12px;">Aplicar</button>
+                    </div>
+                `;
+                stockList.appendChild(div);
+            });
+        }
+        
+        function adjustStock(productId, direction) {
+            const input = document.getElementById(`stock_${productId}`);
+            const currentValue = parseInt(input.value) || 0;
+            input.value = currentValue + direction;
+        }
+        
+        function updateStock(productId) {
+            const input = document.getElementById(`stock_${productId}`);
+            const adjustment = parseInt(input.value) || 0;
+            
+            if (adjustment === 0) return;
+            
+            const product = routes[currentRoute].products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const newQuantity = product.quantity + adjustment;
+            
+            if (newQuantity < 0) {
+                alert('Não é possível deixar o estoque negativo');
+                return;
+            }
+            
+            product.quantity = newQuantity;
+            input.value = 0;
+            
+            saveData();
+            renderRouteStock();
+        }
+        
+        // Funções de Pedidos
+        function openOrderModal() {
+            updateOrderClientSelect();
+            updateOrderProductSelect();
+            document.getElementById('orderModal').style.display = 'block';
+        }
+        
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+            clearOrderForm();
+        }
+        
+        function clearOrderForm() {
+            document.getElementById('orderClient').value = '';
+            document.getElementById('orderProduct').value = '';
+            document.getElementById('orderQuantity').value = '';
+            document.getElementById('orderDiscount').value = '';
+            document.getElementById('orderTotal').textContent = '0,00';
+        }
+        
+        function updateOrderClientSelect() {
+            const select = document.getElementById('orderClient');
+            
+            select.innerHTML = '<option value="">Selecionar cliente</option>';
+            
+            globalClients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.name;
+                select.appendChild(option);
+            });
+        }
+        
+        function updateOrderProductSelect() {
+            const select = document.getElementById('orderProduct');
+            const products = routes[currentRoute].products.filter(p => p.quantity > 0);
+            
+            select.innerHTML = '<option value="">Selecionar produto</option>';
+            
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.quantity} disponível)`;
+                select.appendChild(option);
+            });
+        }
+        
+        function calculateOrderTotal() {
+            const productId = document.getElementById('orderProduct').value;
+            const quantity = parseInt(document.getElementById('orderQuantity').value) || 0;
+            const discount = parseFloat(document.getElementById('orderDiscount').value) || 0;
+            
+            if (!productId || !quantity) {
+                document.getElementById('orderTotal').textContent = '0,00';
+                return;
+            }
+            
+            const product = routes[currentRoute].products.find(p => p.id == productId);
+            if (!product) return;
+            
+            const subtotal = product.price * quantity;
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+            
+            document.getElementById('orderTotal').textContent = total.toFixed(2);
+        }
+        
+        function saveOrder() {
+            const clientId = document.getElementById('orderClient').value;
+            const productId = document.getElementById('orderProduct').value;
+            const quantity = parseInt(document.getElementById('orderQuantity').value);
+            const discount = parseFloat(document.getElementById('orderDiscount').value) || 0;
+            
+            if (!clientId || !productId || !quantity) {
+                alert('Preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const product = routes[currentRoute].products.find(p => p.id == productId);
+            const client = globalClients.find(c => c.id == clientId);
+            
+            if (!product || !client) {
+                alert('Produto ou cliente não encontrado');
+                return;
+            }
+            
+            if (product.quantity < quantity) {
+                alert('Quantidade insuficiente em estoque');
+                return;
+            }
+            
+            const subtotal = product.price * quantity;
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+            
+            // Criar pedido
+            routes[currentRoute].orders.push({
+                id: Date.now(),
+                clientId,
+                clientName: client.name,
+                productId,
+                productName: product.name,
+                quantity,
+                unitPrice: product.price,
+                discount,
+                total,
+                date: new Date().toLocaleString('pt-BR')
+            });
+            
+            // Atualizar estoque
+            product.quantity -= quantity;
+            
+            // Atualizar receita total
+            routes[currentRoute].totalRevenue += total;
+            
+            saveData();
+            closeOrderModal();
+            renderOrders();
+            renderRouteStock();
+            updateCashFlow();
+        }
+        
+        function renderOrders() {
+            const orderList = document.getElementById('orderList');
+            const orders = routes[currentRoute].orders;
+            
+            orderList.innerHTML = '';
+            
+            orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-content">
+                        <div><strong>Pedido #${order.id}</strong> - ${order.date}</div>
+                        <div>👤 ${order.clientName}</div>
+                        <div>📦 ${order.productName} x ${order.quantity}</div>
+                        <div>💰 R$ ${order.total.toFixed(2)} ${order.discount > 0 ? `(${order.discount}% desc.)` : ''}</div>
+                    </div>
+                `;
+                orderList.appendChild(div);
+            });
+        }
+        
+        // Funções de Despesas
+        function addExpense() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            
+            if (!description || !amount) {
+                alert('Preencha todos os campos da despesa');
+                return;
+            }
+            
+            routes[currentRoute].expenses.push({
+                id: Date.now(),
+                description,
+                amount,
+                date: new Date().toLocaleString('pt-BR')
+            });
+            
+            routes[currentRoute].totalExpenses += amount;
+            
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            
+            saveData();
+            renderExpenses();
+            updateCashFlow();
+        }
+        
+        function renderExpenses() {
+            const expenseList = document.getElementById('expenseList');
+            const expenses = routes[currentRoute].expenses;
+            
+            expenseList.innerHTML = '';
+            
+            expenses.forEach(expense => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.borderLeftColor = '#f56565';
+                div.innerHTML = `
+                    <div class="item-content">
+                        <div><strong>${expense.description}</strong></div>
+                        <div>💸 R$ ${expense.amount.toFixed(2)} - ${expense.date}</div>
+                    </div>
+                `;
+                expenseList.appendChild(div);
+            });
+        }
+        
+        function updateCashFlow() {
+            const route = routes[currentRoute];
+            const profit = route.totalRevenue - route.totalExpenses;
+            
+            document.getElementById('totalRevenue').textContent = `R$ ${route.totalRevenue.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `R$ ${route.totalExpenses.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `R$ ${profit.toFixed(2)}`;
+        }
+        
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            
+            // Atualizar total do pedido em tempo real
+            ['orderProduct', 'orderQuantity', 'orderDiscount'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', calculateOrderTotal);
+                }
+            });
+        });
+        
+        // Fechar modais clicando fora
+        window.onclick = function(event) {
+            const clientModal = document.getElementById('clientModal');
+            const productModal = document.getElementById('productModal');
+            const orderModal = document.getElementById('orderModal');
+            
+            if (event.target === clientModal) {
+                closeClientModal();
+            }
+            if (event.target === productModal) {
+                closeProductModal();
+            }
+            if (event.target === orderModal) {
+                closeOrderModal();
+            }
+        }
+    </script>
+</body>
+</html>
